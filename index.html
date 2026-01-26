@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DMA Portal - Fit & Fixed</title>
+    <title>DMA Management Portal - Responsive Fixed</title>
+    <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -19,92 +20,95 @@
             --bg-body: #000000; --bg-card: #121212; --text: #ffffff; --border: #222222;
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text); margin: 0; padding: 10px; transition: 0.3s; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text); margin: 0; padding: 15px; transition: 0.3s; }
         
-        /* --- ☀️🌙 MOVABLE THEME TOGGLE --- */
-        #themeToggleBtn {
-            position: fixed; top: 15px; right: 15px; z-index: 9999;
-            width: 48px; height: 48px; border-radius: 50%;
+        /* --- ☀️🌙 FIXED THEME TOGGLE --- */
+        .theme-toggle-fixed {
+            position: fixed; top: 15px; right: 15px; z-index: 2000;
+            width: 45px; height: 45px; border-radius: 50%;
             background: var(--orange); color: white; border: none;
-            cursor: move; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); font-size: 20px;
-            touch-action: none;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 18px;
         }
 
         /* --- 📥 FLOATING EXCEL --- */
         .excel-float {
-            position: fixed; bottom: 20px; right: 20px; z-index: 2000;
-            width: 52px; height: 52px; border-radius: 50%;
+            position: fixed; bottom: 20px; right: 20px; z-index: 1100;
+            width: 50px; height: 50px; border-radius: 50%;
             background: #1d6f42; color: white; border: none;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 20px;
         }
 
-        /* Dashboard */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 15px; padding-right: 10px; }
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; padding-right: 50px; }
         .stat-card { background: var(--bg-card); padding: 12px; border-radius: 10px; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .stat-card h4 { font-size: 10px; margin: 0; opacity: 0.7; }
+        .stat-card h4 { font-size: 10px; margin: 0; opacity: 0.7; text-transform: uppercase; }
         .stat-card p { margin: 5px 0; font-size: 18px; font-weight: 700; color: var(--primary); }
 
-        /* --- 🔍 SEARCH BAR (RESET BUTTON FIX) --- */
+        /* --- SEARCH & ACTION BAR --- */
         .action-bar { 
-            display: flex; flex-wrap: wrap; gap: 8px; 
-            background: var(--bg-card); padding: 12px; border-radius: 12px; 
-            margin-bottom: 15px; align-items: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex; flex-wrap: wrap; gap: 10px; 
+            background: var(--bg-card); padding: 15px; border-radius: 12px; 
+            margin-bottom: 20px; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        .action-bar input { flex: 1; min-width: 180px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-body); color: var(--text); outline: none; }
-        
-        .btn-group-search { display: flex; gap: 8px; width: auto; }
-        @media (max-width: 480px) { .btn-group-search { width: 100%; } }
-
-        .btn { padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; font-size: 14px; flex: 1; text-align: center; }
+        .action-bar input { flex: 1; min-width: 200px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-body); color: var(--text); outline: none; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: nowrap; }
+        .btn { padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; transition: 0.2s; white-space: nowrap; }
         .btn-primary { background: var(--primary); }
         .btn-grey { background: #64748b; }
-        .filter-btn { background: var(--secondary); width: 45px; flex: none; display: none; }
+        .filter-btn { background: var(--secondary); display: none; }
 
-        /* Layout */
-        .content-layout { display: grid; grid-template-columns: 260px 1fr; gap: 15px; }
-        .sidebar { background: var(--bg-card); padding: 15px; border-radius: 12px; height: 550px; display: flex; flex-direction: column; }
+        /* Sidebar & Table Layout */
+        .content-layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; }
+        .sidebar { background: var(--bg-card); padding: 15px; border-radius: 12px; height: 600px; display: flex; flex-direction: column; position: sticky; top: 90px; }
         .area-list { flex-grow: 1; overflow-y: auto; margin-top: 10px; }
-        .area-item { padding: 10px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; font-size: 13px; }
-        .area-item:hover, .area-item.active { background: var(--primary); color: white; border-radius: 5px; }
+        .area-item { padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; font-size: 13px; border-radius: 6px; }
+        .area-item:hover, .area-item.active { background: var(--primary); color: white; }
         .all-areas-item { margin-top: auto; border: 1px dashed var(--primary); font-weight: bold; background: rgba(36,180,126,0.1); }
 
-        /* Table */
+        /* Table Design */
         .table-container { background: var(--bg-card); border-radius: 12px; overflow: hidden; }
         .table-wrapper { overflow-x: auto; max-height: 500px; }
         table { width: 100%; border-collapse: collapse; }
-        thead { background: var(--primary); color: white; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; white-space: nowrap; }
+        thead { background: var(--primary); color: white; position: sticky; top: 0; z-index: 10; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; white-space: nowrap; }
 
-        /* Responsive Mobile */
+        /* --- MOBILE RESPONSIVE --- */
         @media (max-width: 1024px) {
             .content-layout { grid-template-columns: 1fr; }
             .filter-btn { display: block; }
-            .sidebar { position: fixed; left: -100%; top: 0; height: 100%; z-index: 9000; width: 260px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+            .sidebar { position: fixed; left: -100%; top: 0; height: 100%; z-index: 9000; width: 260px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); transition: 0.3s; }
             .sidebar.active { left: 0; }
+            .btn-group { width: 100%; }
+            .btn { flex: 1; }
             thead { display: none; }
-            tr { display: block; border: 1px solid var(--border); margin-bottom: 10px; padding: 12px; border-radius: 10px; background: var(--bg-card); }
-            td { display: flex; justify-content: space-between; border: none; text-align: right; padding: 8px 0; border-bottom: 1px solid var(--border); white-space: normal; }
+            tr { display: block; border: 1px solid var(--border); margin-bottom: 15px; border-radius: 10px; padding: 12px; background: var(--bg-card); }
+            td { display: flex; justify-content: space-between; border: none; text-align: right; padding: 10px 0; border-bottom: 1px solid var(--border); white-space: normal; }
             td:last-child { border-bottom: none; }
             td::before { content: attr(data-label); font-weight: bold; color: var(--primary); text-align: left; margin-right: 10px; }
         }
-        
+
+        /* Detail Modal */
         .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
-        .modal-content { background: var(--bg-card); margin: 10% auto; padding: 20px; width: 85%; border-radius: 15px; max-height: 80vh; overflow-y: auto; }
-        .detail-item { padding: 8px; background: var(--bg-body); margin-bottom: 5px; border-radius: 5px; border-left: 3px solid var(--primary); font-size: 12px; }
+        .modal-content { background: var(--bg-card); margin: 8% auto; padding: 25px; width: 85%; border-radius: 15px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--primary); }
+        .detail-item { padding: 10px; background: var(--bg-body); margin-bottom: 6px; border-radius: 6px; border-left: 4px solid var(--primary); font-size: 13px; }
+        .view-btn { padding: 6px 12px; background: var(--secondary); border: none; border-radius: 4px; color: white; cursor: pointer; }
     </style>
 </head>
 <body data-theme="night">
 
-    <!-- ☀️🌙 DRAGGABLE THEME BUTTON -->
-    <button id="themeToggleBtn" onclick="cycleTheme()"><i class="fas fa-moon" id="themeIcon"></i></button>
+    <!-- THEME TOGGLE -->
+    <button class="theme-toggle-fixed" onclick="cycleTheme()" title="Change Theme">
+        <i class="fas fa-moon" id="themeIcon"></i>
+    </button>
 
-    <!-- 📥 EXCEL FLOAT -->
-    <button class="excel-float" onclick="exportToExcel()"><i class="fas fa-file-excel"></i></button>
+    <!-- EXCEL FLOAT -->
+    <button class="excel-float" onclick="exportToExcel()" title="Export Excel">
+        <i class="fas fa-file-excel"></i>
+    </button>
 
-    <!-- 📊 STATS -->
+    <!-- DASHBOARD -->
     <div class="stats-grid">
         <div class="stat-card"><h4>Total</h4><p id="stat-total">0</p></div>
         <div class="stat-card" style="border-left-color: var(--secondary);"><h4>COMP</h4><p id="stat-installed">0</p></div>
@@ -112,50 +116,53 @@
         <div class="stat-card" style="border-left-color: #a855f7;"><h4>Areas</h4><p id="stat-areas">0</p></div>
     </div>
 
-    <!-- 🔍 ACTION BAR -->
+    <!-- ACTION BAR -->
     <div class="action-bar">
-        <button class="filter-btn" onclick="toggleSidebar()"><i class="fas fa-filter"></i></button>
-        <input type="text" id="mainSearch" placeholder="Search customer...">
-        <div class="btn-group-search">
-            <button onclick="fetchMainData()" class="btn btn-primary">Search</button>
-            <button onclick="location.reload()" class="btn btn-grey">Reset</button>
+        <button class="btn filter-btn" onclick="toggleSidebar()"><i class="fas fa-filter"></i></button>
+        <input type="text" id="mainSearch" placeholder="Search Customer, SRN or Mobile...">
+        <div class="btn-group">
+            <button onclick="performSearch()" class="btn btn-primary">Search</button>
+            <button onclick="resetFilters()" class="btn btn-grey">Reset</button>
         </div>
     </div>
 
-    <!-- 🗺️ CONTENT -->
+    <!-- MAIN CONTENT -->
     <div class="content-layout">
         <aside class="sidebar" id="sidebar">
             <div style="display:flex; justify-content: space-between; align-items: center;">
-                <b>AREA SUMMARY</b>
+                <b style="font-size: 14px;">AREA SUMMARY</b>
                 <button onclick="toggleSidebar()" class="filter-btn" style="background:none; color:red; font-size:24px;">×</button>
             </div>
-            <input type="text" id="sideSearch" placeholder="Filter area..." onkeyup="filterSidebar()" style="margin:10px 0; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg-body); color:var(--text);">
+            <input type="text" id="sideSearch" placeholder="Filter area..." onkeyup="filterSidebar()" style="margin:10px 0; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg-body); color:var(--text); outline:none;">
             <div class="area-list" id="areaList"></div>
-            <div class="area-item all-areas-item" id="all-areas-btn" onclick="filterByAll()"><span>🌍 ALL AREAS</span> <strong id="allCount">0</strong></div>
+            <div class="area-item all-areas-item active" id="all-areas-btn" onclick="filterByAll()">
+                <span>🌍 ALL AREAS</span> <strong id="allCount">0</strong>
+            </div>
         </aside>
 
         <main class="table-container">
             <div class="table-wrapper">
                 <table id="mainTable">
                     <thead>
-                        <tr><th>Details</th><th>Customer Name</th><th>Contact Number</th><th>SRN</th><th>Area</th><th>Status</th></tr>
+                        <tr><th>Details</th><th>Customer Name</th><th>Mobile</th><th>SRN</th><th>Area</th><th>Status</th></tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
-            <div style="display:flex; justify-content:space-between; padding:15px; background:var(--bg-card); align-items:center;">
-                <button onclick="changePage(-1)" class="btn btn-grey" style="max-width:80px">Prev</button>
-                <span id="pageInfo" style="font-weight:bold; font-size:14px;">Page 1</span>
-                <button onclick="changePage(1)" class="btn btn-grey" style="max-width:80px">Next</button>
+            <div style="display:flex; justify-content:space-between; padding:15px; background:var(--bg-card); align-items:center; border-top:1px solid var(--border);">
+                <button onclick="changePage(-1)" class="btn btn-grey" style="width:80px;">Prev</button>
+                <span id="pageInfo" style="font-weight:bold;">Page 1</span>
+                <button onclick="changePage(1)" class="btn btn-grey" style="width:80px;">Next</button>
             </div>
         </main>
     </div>
 
+    <!-- MODAL -->
     <div id="detailModal" class="modal">
         <div class="modal-content">
             <h3 id="modalTitle" style="color:var(--primary); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:10px;">Details</h3>
-            <div id="modalBody"></div>
-            <button onclick="closeModal()" class="btn btn-primary" style="margin-top:15px; width:100%;">Close</button>
+            <div id="modalBody" class="detail-grid"></div>
+            <button onclick="closeModal()" class="btn btn-primary" style="margin-top:20px; width:100%; padding:12px;">Close Details</button>
         </div>
     </div>
 
@@ -167,15 +174,6 @@
     const columns = ["Customer Name", "Contact Number", "Service Request Number", "Area", "Status"];
     let currentData = [], page = 0, activeArea = null, currentTheme = 'night';
 
-    // --- DRAG ---
-    const dragBtn = document.getElementById("themeToggleBtn");
-    let isDragging = false, offset = { x: 0, y: 0 };
-    dragBtn.onmousedown = dragStart; dragBtn.ontouchstart = dragStart;
-    function dragStart(e) { isDragging = true; let t = e.type === "touchstart" ? e.touches[0] : e; offset.x = t.clientX - dragBtn.offsetLeft; offset.y = t.clientY - dragBtn.offsetTop; }
-    document.onmousemove = dragMove; document.ontouchmove = dragMove;
-    function dragMove(e) { if (!isDragging) return; let t = e.type === "touchmove" ? e.touches[0] : e; dragBtn.style.left = (t.clientX - offset.x) + "px"; dragBtn.style.top = (t.clientY - offset.y) + "px"; dragBtn.style.right = "auto"; }
-    document.onmouseup = () => isDragging = false; document.ontouchend = () => isDragging = false;
-
     function cycleTheme() {
         const themes = ['day', 'night', 'dark'];
         const icons = { day: 'fa-sun', night: 'fa-moon', dark: 'fa-circle' };
@@ -185,58 +183,114 @@
     }
 
     async function loadStats() {
-        const { count } = await supabaseClient.from('SEARCH YOU DATA').select('*', { count: 'exact', head: true });
-        document.getElementById('stat-total').innerText = count.toLocaleString();
-        document.getElementById('allCount').innerText = count.toLocaleString();
-        const { data: summary } = await supabaseClient.rpc('get_area_summary');
-        const list = document.getElementById('areaList');
-        document.getElementById('stat-areas').innerText = summary.length;
-        summary.forEach(a => { list.innerHTML += `<div class="area-item" onclick="filterByArea('${a.area_name}', this)"><span>${a.area_name}</span> <strong>${a.total_count}</strong></div>`; });
-        const { count: sc } = await supabaseClient.from('SEARCH YOU DATA').select('*', { count: 'exact', head: true }).eq('Status', 'COMP');
-        document.getElementById('stat-installed').innerText = (sc || 0).toLocaleString();
-        document.getElementById('stat-pending').innerText = (count - (sc || 0)).toLocaleString();
+        try {
+            const { count } = await supabaseClient.from('SEARCH YOU DATA').select('*', { count: 'exact', head: true });
+            document.getElementById('stat-total').innerText = count.toLocaleString();
+            document.getElementById('allCount').innerText = count.toLocaleString();
+            
+            const { data: summary } = await supabaseClient.rpc('get_area_summary');
+            const list = document.getElementById('areaList');
+            list.innerHTML = '';
+            document.getElementById('stat-areas').innerText = summary.length;
+            summary.forEach(a => {
+                list.innerHTML += `<div class="area-item" onclick="filterByArea('${a.area_name}', this)"><span>${a.area_name}</span> <strong>${a.total_count}</strong></div>`;
+            });
+
+            const { count: sc } = await supabaseClient.from('SEARCH YOU DATA').select('*', { count: 'exact', head: true }).eq('Status', 'COMP');
+            document.getElementById('stat-installed').innerText = (sc || 0).toLocaleString();
+            document.getElementById('stat-pending').innerText = (count - (sc || 0)).toLocaleString();
+        } catch(e) { console.error(e); }
+    }
+
+    async function performSearch() {
+        page = 0;
+        fetchMainData();
     }
 
     async function fetchMainData() {
         const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center">Loading...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:50px;">🔍 Loading Records...</td></tr>';
+        
         const search = document.getElementById('mainSearch').value.trim();
         let q = supabaseClient.from('SEARCH YOU DATA').select('*');
+
         if (search) {
-            if(/^\d+$/.test(search)) q = q.or(`"Service Request Number".eq.${search},"Contact Number".eq.${search}`);
-            else q = q.or(`"Customer Name".ilike.%${search}%,"Locality".ilike.%${search}%`);
+            const isNum = /^\d+$/.test(search);
+            if(isNum) {
+                q = q.or(`"Service Request Number".eq.${search},"Contact Number".eq.${search}`);
+            } else {
+                q = q.or(`"Customer Name".ilike.%${search}%,"Locality".ilike.%${search}%,"Area".ilike.%${search}%`);
+            }
         }
         if (activeArea) q = q.eq('Area', activeArea);
-        const { data } = await q.order('Customer Name').range(page*50, (page+1)*50-1);
+
+        const { data, error } = await q.order('Customer Name', {ascending: true}).range(page*50, (page+1)*50-1);
+        if (error) { tbody.innerHTML = `<tr><td colspan="10">${error.message}</td></tr>`; return; }
+        
         currentData = data;
         tbody.innerHTML = '';
+        if(!data.length) { tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px;">No Data Found</td></tr>'; return; }
+        
         data.forEach((row, idx) => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td data-label="View"><button onclick="showDetails(${idx})" class="btn-primary" style="padding:5px 8px; border-radius:4px; border:none; cursor:pointer;">👁️ Details</button></td>`;
-            columns.forEach(c => { tr.innerHTML += `<td data-label="${c}">${row[c] || '-'}</td>`; });
+            tr.innerHTML = `<td data-label="Details"><button class="view-btn" onclick="showDetails(${idx})">👁️ View</button></td>`;
+            columns.forEach(c => {
+                const label = c === "Contact Number" ? "Mobile" : (c === "Service Request Number" ? "SRN" : c);
+                tr.innerHTML += `<td data-label="${label}">${row[c] || '-'}</td>`;
+            });
             tbody.appendChild(tr);
         });
         document.getElementById('pageInfo').innerText = `Page ${page + 1}`;
     }
 
-    function exportToExcel() {
-        const ws = XLSX.utils.json_to_sheet(currentData);
-        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "DMA"); XLSX.writeFile(wb, "DMA_Data.xlsx");
+    function showDetails(idx) {
+        const row = currentData[idx];
+        const body = document.getElementById('modalBody');
+        body.innerHTML = '';
+        Object.keys(row).sort().forEach(k => {
+            body.innerHTML += `<div class="detail-item"><b>${k.replace(/_/g,' ')}:</b> ${row[k] || '-'}</div>`;
+        });
+        document.getElementById('detailModal').style.display = 'block';
     }
 
-    function showDetails(idx) {
-        const row = currentData[idx]; const body = document.getElementById('modalBody'); body.innerHTML = '';
-        Object.keys(row).sort().forEach(k => { body.innerHTML += `<div class="detail-item"><b>${k}:</b> ${row[k] || '-'}</div>`; });
-        document.getElementById('detailModal').style.display = 'block';
+    function exportToExcel() {
+        if(!currentData.length) return alert("No data to export");
+        const ws = XLSX.utils.json_to_sheet(currentData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Data");
+        XLSX.writeFile(wb, "DMA_Export.xlsx");
     }
 
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
     function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
-    function filterByArea(area, el) { activeArea = area; page = 0; document.querySelectorAll('.area-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); if(window.innerWidth < 1024) toggleSidebar(); fetchMainData(); }
-    function filterByAll() { activeArea = null; page = 0; document.querySelectorAll('.area-item').forEach(i => i.classList.remove('active')); document.getElementById('all-areas-btn').classList.add('active'); if(window.innerWidth < 1024) toggleSidebar(); fetchMainData(); }
-    function filterSidebar() { const val = document.getElementById('sideSearch').value.toUpperCase(); document.querySelectorAll('.area-list .area-item').forEach(i => { i.style.display = i.innerText.toUpperCase().includes(val) ? '' : 'none'; }); }
+    function resetFilters() { document.getElementById('mainSearch').value = ''; filterByAll(); }
+
+    function filterByArea(area, el) {
+        activeArea = area; page = 0;
+        document.querySelectorAll('.area-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        if(window.innerWidth < 1024) toggleSidebar();
+        fetchMainData();
+    }
+    
+    function filterByAll() {
+        activeArea = null; page = 0;
+        document.querySelectorAll('.area-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('all-areas-btn').classList.add('active');
+        if(window.innerWidth < 1024) toggleSidebar();
+        fetchMainData();
+    }
+
+    function filterSidebar() {
+        const val = document.getElementById('sideSearch').value.toUpperCase();
+        document.querySelectorAll('.area-list .area-item').forEach(i => {
+            i.style.display = i.innerText.toUpperCase().includes(val) ? '' : 'none';
+        });
+    }
+
     function changePage(s) { if(page + s >= 0) { page += s; fetchMainData(); } }
     
+    document.getElementById('mainSearch').addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(); });
     window.onload = () => { loadStats(); fetchMainData(); };
 </script>
 </body>
