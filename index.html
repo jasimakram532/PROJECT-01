@@ -3,131 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DMA Portal - Fully Responsive</title>
+    <title>DMA Portal - Corner Theme & Fixed Layout</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        /* --- THEME & BASE --- */
+        /* --- THEMES --- */
         :root {
-            --bg-body: #f4f6f8; --bg-card: #ffffff; --text-main: #1e293b; --border: #cbd5e1; --primary: #24b47e; --secondary: #3b82f6; --orange: #f59e0b;
+            --bg-body: #f4f6f8; --bg-card: #ffffff; --text: #1e293b; --border: #cbd5e1; --primary: #24b47e; --secondary: #3b82f6; --orange: #f59e0b;
         }
         [data-theme="night"] {
-            --bg-body: #0f172a; --bg-card: #1e293b; --text-main: #f1f5f9; --border: #334155;
+            --bg-body: #0f172a; --bg-card: #1e293b; --text: #f1f5f9; --border: #334155;
         }
         [data-theme="dark"] {
-            --bg-body: #000000; --bg-card: #121212; --text-main: #ffffff; --border: #222222;
+            --bg-body: #000000; --bg-card: #121212; --text: #ffffff; --border: #222222;
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding: 10px; transition: 0.3s; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text); margin: 0; padding: 15px; transition: 0.3s; }
         
-        /* Stats Dashboard - Responsive Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        /* --- CORNER THEME TOGGLE --- */
+        .corner-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--orange);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-size: 20px;
+            transition: transform 0.2s;
+        }
+        .corner-toggle:hover { transform: scale(1.1); }
+
+        /* Stats Dashboard */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; padding-right: 60px; /* Space for toggle */ }
         .stat-card { background: var(--bg-card); padding: 15px; border-radius: 12px; border-left: 5px solid var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .stat-card h4 { font-size: 11px; text-transform: uppercase; margin: 0; opacity: 0.8; }
-        .stat-card p { margin: 5px 0; font-size: 22px; font-weight: 700; color: var(--primary); }
-        .status-breakdown { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 5px; }
-        .status-tag { font-size: 9px; padding: 2px 5px; background: rgba(100,100,100,0.1); border-radius: 3px; }
+        .stat-card h4 { font-size: 11px; text-transform: uppercase; margin: 0; opacity: 0.7; }
+        .stat-card p { margin: 8px 0; font-size: 24px; font-weight: 700; color: var(--primary); }
+        .status-breakdown { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; }
+        .status-tag { font-size: 10px; padding: 2px 6px; background: rgba(100,100,100,0.1); border-radius: 4px; }
 
-        /* Search Controls - Responsive Stack */
-        .controls-row { display: flex; flex-wrap: wrap; gap: 10px; background: var(--bg-card); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
-        .controls-row select, .controls-row input { flex: 1; min-width: 140px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-body); color: var(--text-main); }
-        .btn-group { display: flex; gap: 10px; width: 100%; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; color: white; }
-        .btn-primary { background: var(--primary); }
-        .btn-grey { background: #64748b; }
+        /* Action Bar */
+        .action-bar { display: flex; gap: 10px; background: var(--bg-card); padding: 12px; border-radius: 12px; margin-bottom: 20px; align-items: center; position: sticky; top: 10px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .action-bar input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-body); color: var(--text); outline: none; }
+        .icon-btn { width: 45px; height: 45px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; }
+        .excel-btn { background: #1d6f42; }
+        .filter-btn { background: var(--secondary); display: none; }
 
-        /* Main Layout - Sidebar to Top on Mobile */
-        .content-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
-        @media (max-width: 900px) { .content-layout { grid-template-columns: 1fr; } }
-
-        .area-sidebar { background: var(--bg-card); padding: 15px; border-radius: 12px; height: 500px; display: flex; flex-direction: column; }
-        @media (max-width: 900px) { .area-sidebar { height: 300px; } }
-        .area-list-wrapper { flex-grow: 1; overflow-y: auto; margin-top: 10px; }
-        .area-item { padding: 10px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; }
+        /* Content Layout */
+        .content-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
+        .sidebar { background: var(--bg-card); padding: 15px; border-radius: 12px; height: 600px; display: flex; flex-direction: column; position: sticky; top: 90px; }
+        .area-list { flex-grow: 1; overflow-y: auto; margin-top: 10px; border-top: 1px solid var(--border); }
+        .area-item { padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; font-size: 13px; }
         .area-item:hover, .area-item.active { background: var(--primary); color: white; border-radius: 4px; }
+        .all-areas-item { margin-top: auto; border-top: 2px solid var(--primary); background: rgba(36, 180, 126, 0.1); font-weight: bold; }
 
-        /* --- TABLE TO CARD TRANSFORMATION (Mobile Best Feature) --- */
-        .table-container { background: var(--bg-card); border-radius: 12px; overflow: hidden; }
-        .table-wrapper { overflow-x: auto; }
+        /* Table */
+        .table-container { background: var(--bg-card); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .table-wrapper { overflow-x: auto; max-height: 550px; }
         table { width: 100%; border-collapse: collapse; }
-        thead { background: var(--primary); color: white; }
-        th, td { padding: 12px; font-size: 13px; text-align: left; border-bottom: 1px solid var(--border); }
+        thead { background: var(--primary); color: white; position: sticky; top: 0; z-index: 10; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; white-space: nowrap; }
 
-        @media (max-width: 768px) {
-            thead { display: none; } /* Hide headers on mobile */
-            tr { display: block; background: var(--bg-card); border: 1px solid var(--border); margin-bottom: 15px; border-radius: 10px; padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            td { display: flex; justify-content: space-between; border: none; padding: 8px 5px; border-bottom: 1px solid var(--border); text-align: right; white-space: normal; }
-            td:last-child { border-bottom: none; }
-            td::before { content: attr(data-label); font-weight: 700; color: var(--primary); text-align: left; margin-right: 10px; font-size: 12px; }
-            .view-btn { width: 100%; margin-top: 5px; }
+        /* Shimmer Animation */
+        .skeleton { height: 20px; background: linear-gradient(90deg, var(--border) 25%, var(--bg-body) 50%, var(--border) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+        /* Responsive Mobile */
+        @media (max-width: 1024px) {
+            .content-layout { grid-template-columns: 1fr; }
+            .filter-btn { display: flex; }
+            .sidebar { position: fixed; left: -100%; top: 0; height: 100%; z-index: 1200; width: 280px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+            .sidebar.active { left: 0; }
+            .stats-grid { padding-right: 0; margin-top: 40px; }
+            thead { display: none; }
+            tr { display: block; border: 1px solid var(--border); margin-bottom: 15px; border-radius: 10px; padding: 12px; background: var(--bg-card); }
+            td { display: flex; justify-content: space-between; border: none; text-align: right; padding: 10px 0; border-bottom: 1px solid var(--border); white-space: normal; }
+            td::before { content: attr(data-label); font-weight: bold; color: var(--primary); text-align: left; margin-right: 10px; font-size: 12px; }
         }
 
-        /* Detail Modal */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
-        .modal-content { background: var(--bg-card); margin: 2% auto; padding: 20px; width: 90%; max-height: 90vh; overflow-y: auto; border-radius: 12px; }
-        .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
-        .detail-item { padding: 10px; background: var(--bg-body); border-radius: 6px; font-size: 13px; border-left: 3px solid var(--primary); }
-        
-        .view-btn { padding: 8px 12px; background: var(--secondary); border: none; border-radius: 4px; color: white; cursor: pointer; }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
+        .modal-content { background: var(--bg-card); margin: 5% auto; padding: 25px; width: 85%; border-radius: 15px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--primary); }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+        .detail-item { padding: 10px; background: var(--bg-body); border-radius: 6px; font-size: 13px; border-left: 4px solid var(--primary); }
+        .view-btn { padding: 6px 12px; background: var(--secondary); border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 12px; }
     </style>
 </head>
 <body data-theme="night">
 
-    <!-- 1. STATS -->
+    <!-- ☀️🌙 CORNER THEME TOGGLE BUTTON -->
+    <button class="corner-toggle" onclick="cycleTheme()" id="themeIcon">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- 1. DASHBOARD -->
     <div class="stats-grid">
         <div class="stat-card"><h4>Total Records</h4><p id="stat-total">0</p></div>
         <div class="stat-card" style="border-left-color: var(--secondary);"><h4>Installed (COMP)</h4><p id="stat-installed">0</p></div>
         <div class="stat-card" style="border-left-color: var(--orange);">
-            <h4>Pending</h4><p id="stat-pending">0</p>
+            <h4>Pending Work</h4><p id="stat-pending">0</p>
             <div class="status-breakdown" id="statusBreakdown"></div>
         </div>
-        <div class="stat-card" style="border-left-color: #a855f7;"><h4>Areas</h4><p id="stat-areas">0</p></div>
+        <div class="stat-card" style="border-left-color: #a855f7;"><h4>Total Areas</h4><p id="stat-areas">0</p></div>
     </div>
 
-    <!-- 2. SEARCH -->
-    <div class="controls-row">
-        <select onchange="document.body.setAttribute('data-theme', this.value)">
-            <option value="night">🌙 Night Mode</option>
-            <option value="day">☀️ Day Mode</option>
-            <option value="dark">🖤 Dark Mode</option>
-        </select>
-        
-        <select id="searchField">
-            <option value="global">All Main Fields</option>
-            <option value="Customer Name">Customer Name</option>
-            <option value="Contact Number">Mobile Number</option>
-            <option value="Service Request Number">Service Request Number</option>
-            <option value="Business Partner">Business Partner</option>
-        </select>
-        
-        <input type="text" id="mainSearch" placeholder="Search data...">
-        
-        <div class="btn-group">
-            <button onclick="fetchMainData(0)" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
-            <button onclick="location.reload()" class="btn btn-grey">Reset</button>
-        </div>
+    <!-- 2. ACTION BAR (Clean - no theme icon here) -->
+    <div class="action-bar">
+        <button class="icon-btn filter-btn" onclick="toggleSidebar()"><i class="fas fa-filter"></i></button>
+        <input type="text" id="mainSearch" placeholder="Search Customer Name, SRN or Mobile...">
+        <button class="icon-btn excel-btn" onclick="exportToExcel()" title="Export to Excel"><i class="fas fa-file-excel"></i></button>
     </div>
 
-    <!-- 3. MAIN LAYOUT -->
+    <!-- 3. MAIN CONTENT -->
     <div class="content-layout">
-        <aside class="area-sidebar">
-            <div class="area-item active" id="all-areas-item" onclick="filterByAll(this)"><span>🌍 ALL AREAS</span> <strong id="sidebar-total">0</strong></div>
-            <input type="text" id="sidebarSearch" placeholder="Filter area..." onkeyup="filterSidebar()" style="width:100%; margin-top:10px;">
-            <div class="area-list-wrapper" id="areaList"></div>
+        <aside class="sidebar" id="sidebar">
+            <div style="display:flex; justify-content: space-between; align-items: center;">
+                <b>AREA SUMMARY</b>
+                <button onclick="toggleSidebar()" class="filter-btn" style="background:none; color:red; border:none; font-size: 24px;">×</button>
+            </div>
+            <input type="text" id="sideSearch" placeholder="Filter area..." onkeyup="filterSidebar()" style="margin-top:10px; padding:8px; border-radius:6px; border:1px solid var(--border); background:var(--bg-body); color:var(--text);">
+            <div class="area-list" id="areaList"></div>
+            <div class="area-item all-areas-item" id="all-areas-btn" onclick="filterByAll()">
+                <span>🌍 ALL AREAS</span> <strong id="allCount">0</strong>
+            </div>
         </aside>
 
         <main class="table-container">
             <div class="table-wrapper">
-                <table>
-                    <thead><tr id="tableHeaders"><th>Details</th></tr></thead>
+                <table id="mainTable">
+                    <thead>
+                        <tr id="tableHeaders">
+                            <th>View</th>
+                            <th>Customer Name</th>
+                            <th>Contact Number</th>
+                            <th>Service Request Number</th>
+                            <th>Business Partner</th>
+                            <th>Area</th>
+                            <th>Status</th>
+                            <th>Meter No.</th>
+                            <th>District</th>
+                        </tr>
+                    </thead>
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
-            <div style="padding:15px; text-align:center; display: flex; justify-content: space-between;">
-                <button onclick="changePage(-1)" class="btn btn-grey" style="flex: 0.4;">Prev</button>
-                <span id="pageInfo" style="font-weight:bold; align-self: center;">Page 1</span>
-                <button onclick="changePage(1)" class="btn btn-grey" style="flex: 0.4;">Next</button>
+            <div style="display:flex; justify-content:space-between; padding:15px; background:var(--bg-card); border-top:1px solid var(--border);">
+                <button onclick="changePage(-1)" class="icon-btn" style="background:var(--border); color:var(--text); width:80px;">Prev</button>
+                <span id="pageInfo" style="align-self:center; font-weight:bold;">Page 1</span>
+                <button onclick="changePage(1)" class="icon-btn" style="background:var(--border); color:var(--text); width:80px;">Next</button>
             </div>
         </main>
     </div>
@@ -135,135 +167,147 @@
     <!-- 4. MODAL -->
     <div id="detailModal" class="modal">
         <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:15px;">
-                <h3 id="modalTitle" style="margin:0; color:var(--primary); font-size: 16px;">Details</h3>
-                <button onclick="closeModal()" class="btn btn-grey" style="max-width: 40px;">X</button>
-            </div>
+            <h3 id="modalTitle" style="color:var(--primary); margin-top:0;">Customer Details</h3>
             <div id="modalBody" class="detail-grid"></div>
+            <button onclick="closeModal()" class="btn btn-primary" style="margin-top:20px; width:100%; padding:12px; border:none; border-radius:8px; cursor:pointer;">Close</button>
         </div>
     </div>
 
 <script>
     const SUPABASE_URL = 'https://tqvyjyseaugdtblqacle.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxdnlqeXNlYXVnZHRibHFhY2xlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMjcwNDksImV4cCI6MjA4MzgwMzA0OX0.hLknKsbneugFWUaQ-DjfnI1ZTbD98BY_uc0ijcIZnSE';
-    const TABLE_NAME = 'SEARCH YOU DATA';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const tableCols = ["Customer Name", "Contact Number", "Service Request Number", "Business Partner", "Locality", "Area", "District", "Status", "Meter No."];
+    const columns = ["Customer Name", "Contact Number", "Service Request Number", "Business Partner", "Area", "Status", "Meter No.", "District"];
+    let currentData = [], page = 0, activeArea = null, currentTheme = 'night';
 
-    let currentPage = 0;
-    let activeArea = null;
-    let currentData = [];
-
-    async function init() {
-        const hRow = document.getElementById('tableHeaders');
-        tableCols.forEach(c => hRow.innerHTML += `<th>${c}</th>`);
-        loadDashboard();
-        fetchMainData();
+    // --- 1. THEME TOGGLE ICON ---
+    function cycleTheme() {
+        const themes = ['day', 'night', 'dark'];
+        const icons = { day: 'fa-sun', night: 'fa-moon', dark: 'fa-circle' };
+        currentTheme = themes[(themes.indexOf(currentTheme) + 1) % 3];
+        document.body.setAttribute('data-theme', currentTheme);
+        document.getElementById('themeIcon').innerHTML = `<i class="fas ${icons[currentTheme]}"></i>`;
     }
 
-    async function loadDashboard() {
-        try {
-            const { count } = await supabaseClient.from(TABLE_NAME).select('*', { count: 'exact', head: true });
-            document.getElementById('stat-total').innerText = count.toLocaleString();
-            document.getElementById('sidebar-total').innerText = count.toLocaleString();
-
-            const statuses = ['COMP', 'MIST', 'MIOC', 'MIDN', 'RFC'];
-            let bHtml = '';
-            for (const s of statuses) {
-                const { count: sc } = await supabaseClient.from(TABLE_NAME).select('*', { count: 'exact', head: true }).eq('Status', s);
-                if(s === 'COMP') document.getElementById('stat-installed').innerText = (sc || 0).toLocaleString();
-                bHtml += `<span class="status-tag">${s}: ${sc || 0}</span>`;
-            }
-            document.getElementById('statusBreakdown').innerHTML = bHtml;
-            const inst = parseInt(document.getElementById('stat-installed').innerText.replace(/,/g,'')) || 0;
-            document.getElementById('stat-pending').innerText = (count - inst).toLocaleString();
-
-            const { data: areas } = await supabaseClient.rpc('get_area_summary');
-            document.getElementById('stat-areas').innerText = areas.length;
-            const aList = document.getElementById('areaList');
-            areas.forEach(a => {
-                aList.innerHTML += `<div class="area-item" onclick="filterByArea('${a.area_name}', this)"><span>${a.area_name}</span> <strong>${a.total_count}</strong></div>`;
-            });
-        } catch (e) { console.log(e); }
-    }
-
-    async function fetchMainData(page = 0) {
-        currentPage = page;
-        const qVal = document.getElementById('mainSearch').value.trim();
-        const field = document.getElementById('searchField').value;
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center">Loading...</td></tr>';
-
-        try {
-            let dbQ = supabaseClient.from(TABLE_NAME).select('*');
-            if (qVal) {
-                if (field === 'global') {
-                    dbQ = dbQ.or(`"Customer Name".ilike.%${qVal}%,"Locality".ilike.%${qVal}%,"Service Request Number"::text.ilike.%${qVal}%,"Contact Number"::text.ilike.%${qVal}%`);
-                } else {
-                    dbQ = dbQ.filter(`"${field}"::text`, 'ilike', `%${qVal}%`);
-                }
-            }
-            if (activeArea) dbQ = dbQ.eq('Area', activeArea);
-            
-            const { data, error } = await dbQ.order('Customer Name', {ascending: true}).range(currentPage*50, (currentPage+1)*50-1);
-            if (error) throw error;
-            currentData = data;
-            
-            tbody.innerHTML = '';
-            data.forEach((row, index) => {
-                let tr = document.createElement('tr');
-                // Eye button for details
-                let tdBtn = document.createElement('td');
-                tdBtn.setAttribute('data-label', 'Details');
-                tdBtn.innerHTML = `<button class="view-btn" onclick="viewDetails(${index})"><i class="fas fa-eye"></i> View All</button>`;
-                tr.appendChild(tdBtn);
-
-                tableCols.forEach(c => {
-                    let td = document.createElement('td');
-                    td.setAttribute('data-label', c); // Required for mobile card view
-                    td.innerText = row[c] || '-';
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            });
-            document.getElementById('pageInfo').innerText = `Page ${currentPage + 1}`;
-        } catch (e) { tbody.innerHTML = e.message; }
-    }
-
-    function viewDetails(index) {
-        const row = currentData[index];
-        document.getElementById('modalTitle').innerText = row['Customer Name'] || 'Details';
-        let html = '';
-        Object.keys(row).sort().forEach(key => {
-            html += `<div class="detail-item"><strong>${key.replace(/_/g, ' ')}:</strong> ${row[key] || '-'}</div>`;
+    // --- 2. STATS & SIDEBAR ---
+    async function loadStats() {
+        const { count } = await supabaseClient.from('SEARCH YOU DATA').select('*', { count: 'exact', head: true });
+        document.getElementById('stat-total').innerText = count.toLocaleString();
+        document.getElementById('allCount').innerText = count.toLocaleString();
+        
+        const { data: summary } = await supabaseClient.rpc('get_area_summary');
+        const list = document.getElementById('areaList');
+        document.getElementById('stat-areas').innerText = summary.length;
+        summary.forEach(a => {
+            list.innerHTML += `<div class="area-item" onclick="filterByArea('${a.area_name}', this)"><span>${a.area_name}</span> <strong>${a.total_count}</strong></div>`;
         });
-        document.getElementById('modalBody').innerHTML = html;
+
+        const statuses = ['COMP', 'MIST', 'MIOC', 'MIDN', 'RFC'];
+        let bHtml = '';
+        for(let s of statuses) {
+            const { count: sc } = await supabaseClient.from('SEARCH YOU DATA').select('*', { count: 'exact', head: true }).eq('Status', s);
+            if(s === 'COMP') document.getElementById('stat-installed').innerText = (sc || 0).toLocaleString();
+            bHtml += `<span class="status-tag">${s}: ${sc || 0}</span>`;
+        }
+        document.getElementById('statusBreakdown').innerHTML = bHtml;
+        const totalNum = parseInt(document.getElementById('stat-total').innerText.replace(/,/g,''));
+        const compNum = parseInt(document.getElementById('stat-installed').innerText.replace(/,/g,''));
+        document.getElementById('stat-pending').innerText = (totalNum - compNum).toLocaleString();
+    }
+
+    // --- 3. FETCH DATA ---
+    async function fetchMainData() {
+        renderSkeleton();
+        const search = document.getElementById('mainSearch').value.trim();
+        let q = supabaseClient.from('SEARCH YOU DATA').select('*');
+        
+        if (search) {
+            const isNum = /^\d+$/.test(search);
+            if(isNum) {
+                q = q.or(`"Service Request Number".eq.${search},"Contact Number".eq.${search},"Business Partner".eq.${search},"Customer Name".ilike.%${search}%`);
+            } else {
+                q = q.or(`"Customer Name".ilike.%${search}%,"Locality".ilike.%${search}%,"Area".ilike.%${search}%`);
+            }
+            if(window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('active'); // Hide sidebar on mobile search
+        }
+        if (activeArea) q = q.eq('Area', activeArea);
+
+        const { data, error } = await q.order('Customer Name').range(page*50, (page+1)*50-1);
+        if (error) return;
+        currentData = data;
+        renderTable(data);
+    }
+
+    function renderSkeleton() {
+        const body = document.getElementById('tableBody');
+        body.innerHTML = '';
+        for(let i=0; i<8; i++) { body.innerHTML += `<tr><td colspan="10"><div class="skeleton"></div></td></tr>`; }
+    }
+
+    function renderTable(data) {
+        const body = document.getElementById('tableBody');
+        body.innerHTML = '';
+        if(!data.length) { body.innerHTML = '<tr><td colspan="10" style="text-align:center">No records found.</td></tr>'; return; }
+        
+        data.forEach((row, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td data-label="Action"><button class="view-btn" onclick="showDetails(${idx})">👁️ Details</button></td>`;
+            columns.forEach(c => {
+                tr.innerHTML += `<td data-label="${c}">${row[c] || '-'}</td>`;
+            });
+            body.appendChild(tr);
+        });
+        document.getElementById('pageInfo').innerText = `Page ${page + 1}`;
+    }
+
+    function exportToExcel() {
+        const ws = XLSX.utils.json_to_sheet(currentData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "DMA_Records");
+        XLSX.writeFile(wb, "DMA_Export.xlsx");
+    }
+
+    function showDetails(idx) {
+        const row = currentData[idx];
+        const body = document.getElementById('modalBody');
+        body.innerHTML = '';
+        Object.keys(row).sort().forEach(k => {
+            body.innerHTML += `<div class="detail-item"><b>${k.replace(/_/g,' ')}:</b> ${row[k] || '-'}</div>`;
+        });
         document.getElementById('detailModal').style.display = 'block';
     }
 
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
     function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
+    
     function filterByArea(area, el) {
+        activeArea = area; page = 0;
         document.querySelectorAll('.area-item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
-        activeArea = area;
-        fetchMainData(0);
+        if(window.innerWidth < 1024) toggleSidebar();
+        fetchMainData();
     }
-    function filterByAll(el) {
-        activeArea = null;
+    
+    function filterByAll() {
+        activeArea = null; page = 0;
         document.querySelectorAll('.area-item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
-        fetchMainData(0);
+        document.getElementById('all-areas-btn').classList.add('active');
+        if(window.innerWidth < 1024) toggleSidebar();
+        fetchMainData();
     }
+
     function filterSidebar() {
-        let val = document.getElementById('sidebarSearch').value.toUpperCase();
-        document.querySelectorAll('.area-item').forEach(i => {
-            if(i.id !== 'all-areas-item') i.style.display = i.innerText.toUpperCase().includes(val) ? '' : 'none';
+        const val = document.getElementById('sideSearch').value.toUpperCase();
+        document.querySelectorAll('.area-list .area-item').forEach(i => {
+            i.style.display = i.innerText.toUpperCase().includes(val) ? '' : 'none';
         });
     }
-    function changePage(step) { if (currentPage + step >= 0) fetchMainData(currentPage + step); }
-    document.getElementById('mainSearch').addEventListener('keypress', (e) => { if(e.key === 'Enter') fetchMainData(0); });
-    window.onload = init;
+
+    function changePage(s) { if(page + s >= 0) { page += s; fetchMainData(); } }
+    document.getElementById('mainSearch').addEventListener('keypress', (e) => { if(e.key === 'Enter') { page=0; fetchMainData(); } });
+
+    window.onload = () => { loadStats(); fetchMainData(); };
 </script>
 </body>
 </html>
