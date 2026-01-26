@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMA Portal - Fully Responsive</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* --- THEME & BASE --- */
+        :root {
+            --bg-body: #f4f6f8; --bg-card: #ffffff; --text-main: #1e293b; --border: #cbd5e1; --primary: #24b47e; --secondary: #3b82f6; --orange: #f59e0b;
+        }
+        [data-theme="night"] {
+            --bg-body: #0f172a; --bg-card: #1e293b; --text-main: #f1f5f9; --border: #334155;
+        }
+        [data-theme="dark"] {
+            --bg-body: #000000; --bg-card: #121212; --text-main: #ffffff; --border: #222222;
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding: 10px; transition: 0.3s; }
+        
+        /* Stats Dashboard - Responsive Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: var(--bg-card); padding: 15px; border-radius: 12px; border-left: 5px solid var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .stat-card h4 { font-size: 11px; text-transform: uppercase; margin: 0; opacity: 0.8; }
+        .stat-card p { margin: 5px 0; font-size: 22px; font-weight: 700; color: var(--primary); }
+        .status-breakdown { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 5px; }
+        .status-tag { font-size: 9px; padding: 2px 5px; background: rgba(100,100,100,0.1); border-radius: 3px; }
+
+        /* Search Controls - Responsive Stack */
+        .controls-row { display: flex; flex-wrap: wrap; gap: 10px; background: var(--bg-card); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .controls-row select, .controls-row input { flex: 1; min-width: 140px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-body); color: var(--text-main); }
+        .btn-group { display: flex; gap: 10px; width: 100%; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; color: white; }
+        .btn-primary { background: var(--primary); }
+        .btn-grey { background: #64748b; }
+
+        /* Main Layout - Sidebar to Top on Mobile */
+        .content-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+        @media (max-width: 900px) { .content-layout { grid-template-columns: 1fr; } }
+
+        .area-sidebar { background: var(--bg-card); padding: 15px; border-radius: 12px; height: 500px; display: flex; flex-direction: column; }
+        @media (max-width: 900px) { .area-sidebar { height: 300px; } }
+        .area-list-wrapper { flex-grow: 1; overflow-y: auto; margin-top: 10px; }
+        .area-item { padding: 10px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; }
+        .area-item:hover, .area-item.active { background: var(--primary); color: white; border-radius: 4px; }
+
+        /* --- TABLE TO CARD TRANSFORMATION (Mobile Best Feature) --- */
+        .table-container { background: var(--bg-card); border-radius: 12px; overflow: hidden; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--primary); color: white; }
+        th, td { padding: 12px; font-size: 13px; text-align: left; border-bottom: 1px solid var(--border); }
+
+        @media (max-width: 768px) {
+            thead { display: none; } /* Hide headers on mobile */
+            tr { display: block; background: var(--bg-card); border: 1px solid var(--border); margin-bottom: 15px; border-radius: 10px; padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            td { display: flex; justify-content: space-between; border: none; padding: 8px 5px; border-bottom: 1px solid var(--border); text-align: right; white-space: normal; }
+            td:last-child { border-bottom: none; }
+            td::before { content: attr(data-label); font-weight: 700; color: var(--primary); text-align: left; margin-right: 10px; font-size: 12px; }
+            .view-btn { width: 100%; margin-top: 5px; }
+        }
+
+        /* Detail Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+        .modal-content { background: var(--bg-card); margin: 2% auto; padding: 20px; width: 90%; max-height: 90vh; overflow-y: auto; border-radius: 12px; }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+        .detail-item { padding: 10px; background: var(--bg-body); border-radius: 6px; font-size: 13px; border-left: 3px solid var(--primary); }
+        
+        .view-btn { padding: 8px 12px; background: var(--secondary); border: none; border-radius: 4px; color: white; cursor: pointer; }
+    </style>
+</head>
+<body data-theme="night">
+
+    <!-- 1. STATS -->
+    <div class="stats-grid">
+        <div class="stat-card"><h4>Total Records</h4><p id="stat-total">0</p></div>
+        <div class="stat-card" style="border-left-color: var(--secondary);"><h4>Installed (COMP)</h4><p id="stat-installed">0</p></div>
+        <div class="stat-card" style="border-left-color: var(--orange);">
+            <h4>Pending</h4><p id="stat-pending">0</p>
+            <div class="status-breakdown" id="statusBreakdown"></div>
+        </div>
+        <div class="stat-card" style="border-left-color: #a855f7;"><h4>Areas</h4><p id="stat-areas">0</p></div>
+    </div>
+
+    <!-- 2. SEARCH -->
+    <div class="controls-row">
+        <select onchange="document.body.setAttribute('data-theme', this.value)">
+            <option value="night">🌙 Night Mode</option>
+            <option value="day">☀️ Day Mode</option>
+            <option value="dark">🖤 Dark Mode</option>
+        </select>
+        
+        <select id="searchField">
+            <option value="global">All Main Fields</option>
+            <option value="Customer Name">Customer Name</option>
+            <option value="Contact Number">Mobile Number</option>
+            <option value="Service Request Number">Service Request Number</option>
+            <option value="Business Partner">Business Partner</option>
+        </select>
+        
+        <input type="text" id="mainSearch" placeholder="Search data...">
+        
+        <div class="btn-group">
+            <button onclick="fetchMainData(0)" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+            <button onclick="location.reload()" class="btn btn-grey">Reset</button>
+        </div>
+    </div>
+
+    <!-- 3. MAIN LAYOUT -->
+    <div class="content-layout">
+        <aside class="area-sidebar">
+            <div class="area-item active" id="all-areas-item" onclick="filterByAll(this)"><span>🌍 ALL AREAS</span> <strong id="sidebar-total">0</strong></div>
+            <input type="text" id="sidebarSearch" placeholder="Filter area..." onkeyup="filterSidebar()" style="width:100%; margin-top:10px;">
+            <div class="area-list-wrapper" id="areaList"></div>
+        </aside>
+
+        <main class="table-container">
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr id="tableHeaders"><th>Details</th></tr></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+            <div style="padding:15px; text-align:center; display: flex; justify-content: space-between;">
+                <button onclick="changePage(-1)" class="btn btn-grey" style="flex: 0.4;">Prev</button>
+                <span id="pageInfo" style="font-weight:bold; align-self: center;">Page 1</span>
+                <button onclick="changePage(1)" class="btn btn-grey" style="flex: 0.4;">Next</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- 4. MODAL -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:15px;">
+                <h3 id="modalTitle" style="margin:0; color:var(--primary); font-size: 16px;">Details</h3>
+                <button onclick="closeModal()" class="btn btn-grey" style="max-width: 40px;">X</button>
+            </div>
+            <div id="modalBody" class="detail-grid"></div>
+        </div>
+    </div>
+
+<script>
+    const SUPABASE_URL = 'https://tqvyjyseaugdtblqacle.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxdnlqeXNlYXVnZHRibHFhY2xlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMjcwNDksImV4cCI6MjA4MzgwMzA0OX0.hLknKsbneugFWUaQ-DjfnI1ZTbD98BY_uc0ijcIZnSE';
+    const TABLE_NAME = 'SEARCH YOU DATA';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const tableCols = ["Customer Name", "Contact Number", "Service Request Number", "Business Partner", "Locality", "Area", "District", "Status", "Meter No."];
+
+    let currentPage = 0;
+    let activeArea = null;
+    let currentData = [];
+
+    async function init() {
+        const hRow = document.getElementById('tableHeaders');
+        tableCols.forEach(c => hRow.innerHTML += `<th>${c}</th>`);
+        loadDashboard();
+        fetchMainData();
+    }
+
+    async function loadDashboard() {
+        try {
+            const { count } = await supabaseClient.from(TABLE_NAME).select('*', { count: 'exact', head: true });
+            document.getElementById('stat-total').innerText = count.toLocaleString();
+            document.getElementById('sidebar-total').innerText = count.toLocaleString();
+
+            const statuses = ['COMP', 'MIST', 'MIOC', 'MIDN', 'RFC'];
+            let bHtml = '';
+            for (const s of statuses) {
+                const { count: sc } = await supabaseClient.from(TABLE_NAME).select('*', { count: 'exact', head: true }).eq('Status', s);
+                if(s === 'COMP') document.getElementById('stat-installed').innerText = (sc || 0).toLocaleString();
+                bHtml += `<span class="status-tag">${s}: ${sc || 0}</span>`;
+            }
+            document.getElementById('statusBreakdown').innerHTML = bHtml;
+            const inst = parseInt(document.getElementById('stat-installed').innerText.replace(/,/g,'')) || 0;
+            document.getElementById('stat-pending').innerText = (count - inst).toLocaleString();
+
+            const { data: areas } = await supabaseClient.rpc('get_area_summary');
+            document.getElementById('stat-areas').innerText = areas.length;
+            const aList = document.getElementById('areaList');
+            areas.forEach(a => {
+                aList.innerHTML += `<div class="area-item" onclick="filterByArea('${a.area_name}', this)"><span>${a.area_name}</span> <strong>${a.total_count}</strong></div>`;
+            });
+        } catch (e) { console.log(e); }
+    }
+
+    async function fetchMainData(page = 0) {
+        currentPage = page;
+        const qVal = document.getElementById('mainSearch').value.trim();
+        const field = document.getElementById('searchField').value;
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center">Loading...</td></tr>';
+
+        try {
+            let dbQ = supabaseClient.from(TABLE_NAME).select('*');
+            if (qVal) {
+                if (field === 'global') {
+                    dbQ = dbQ.or(`"Customer Name".ilike.%${qVal}%,"Locality".ilike.%${qVal}%,"Service Request Number"::text.ilike.%${qVal}%,"Contact Number"::text.ilike.%${qVal}%`);
+                } else {
+                    dbQ = dbQ.filter(`"${field}"::text`, 'ilike', `%${qVal}%`);
+                }
+            }
+            if (activeArea) dbQ = dbQ.eq('Area', activeArea);
+            
+            const { data, error } = await dbQ.order('Customer Name', {ascending: true}).range(currentPage*50, (currentPage+1)*50-1);
+            if (error) throw error;
+            currentData = data;
+            
+            tbody.innerHTML = '';
+            data.forEach((row, index) => {
+                let tr = document.createElement('tr');
+                // Eye button for details
+                let tdBtn = document.createElement('td');
+                tdBtn.setAttribute('data-label', 'Details');
+                tdBtn.innerHTML = `<button class="view-btn" onclick="viewDetails(${index})"><i class="fas fa-eye"></i> View All</button>`;
+                tr.appendChild(tdBtn);
+
+                tableCols.forEach(c => {
+                    let td = document.createElement('td');
+                    td.setAttribute('data-label', c); // Required for mobile card view
+                    td.innerText = row[c] || '-';
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            document.getElementById('pageInfo').innerText = `Page ${currentPage + 1}`;
+        } catch (e) { tbody.innerHTML = e.message; }
+    }
+
+    function viewDetails(index) {
+        const row = currentData[index];
+        document.getElementById('modalTitle').innerText = row['Customer Name'] || 'Details';
+        let html = '';
+        Object.keys(row).sort().forEach(key => {
+            html += `<div class="detail-item"><strong>${key.replace(/_/g, ' ')}:</strong> ${row[key] || '-'}</div>`;
+        });
+        document.getElementById('modalBody').innerHTML = html;
+        document.getElementById('detailModal').style.display = 'block';
+    }
+
+    function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
+    function filterByArea(area, el) {
+        document.querySelectorAll('.area-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        activeArea = area;
+        fetchMainData(0);
+    }
+    function filterByAll(el) {
+        activeArea = null;
+        document.querySelectorAll('.area-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        fetchMainData(0);
+    }
+    function filterSidebar() {
+        let val = document.getElementById('sidebarSearch').value.toUpperCase();
+        document.querySelectorAll('.area-item').forEach(i => {
+            if(i.id !== 'all-areas-item') i.style.display = i.innerText.toUpperCase().includes(val) ? '' : 'none';
+        });
+    }
+    function changePage(step) { if (currentPage + step >= 0) fetchMainData(currentPage + step); }
+    document.getElementById('mainSearch').addEventListener('keypress', (e) => { if(e.key === 'Enter') fetchMainData(0); });
+    window.onload = init;
+</script>
+</body>
+</html>
