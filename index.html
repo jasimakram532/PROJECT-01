@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DMA Management Portal - Master UI</title>
+    <title>DMA Management Portal - Ultimate UI</title>
     <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -62,7 +62,7 @@
         
         .area-item { padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; font-size: 13px; }
         .area-item:hover, .area-item.active { background: var(--primary); color: white; border-radius: 5px; }
-        .all-areas { background: rgba(36,180,126,0.1); font-weight: bold; margin-top: 10px; padding: 14px; text-align: center; border-radius: 10px; cursor: pointer; border: 1px dashed var(--primary); }
+        .all-areas { background: rgba(36,180,126,0.1); font-weight: bold; margin-top: 10px; margin-bottom: 10px; padding: 14px; text-align: center; border-radius: 10px; cursor: pointer; border: 1px dashed var(--primary); }
 
         /* Table */
         .table-container { background: var(--bg-card); border-radius: 12px; overflow: hidden; }
@@ -79,14 +79,16 @@
             thead { display: none; }
             tr { display: block; border: 1px solid var(--border); margin-bottom: 12px; padding: 12px; border-radius: 10px; background: var(--bg-card); }
             td { display: flex; justify-content: space-between; border: none; text-align: right; padding: 8px 0; border-bottom: 1px solid var(--border); white-space: normal; }
+            td:last-child { border-bottom: none; }
             td::before { content: attr(data-label); font-weight: bold; color: var(--primary); text-align: left; margin-right: 10px; }
         }
 
-        /* Detail Modal */
+        /* Detail Modal (View All 43+ Details) */
         .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
         .modal-content { background: var(--bg-card); margin: 5% auto; padding: 25px; width: 85%; border-radius: 15px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--primary); }
-        .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin-top: 15px; }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; margin-top: 15px; }
         .detail-item { padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 12px; border-left: 3px solid var(--primary); }
+        .detail-item b { color: var(--primary); margin-right: 5px; text-transform: capitalize; }
     </style>
 </head>
 <body data-theme="night">
@@ -94,18 +96,18 @@
     <!-- Backdrop for Tap-to-Close -->
     <div id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-    <!-- Stats -->
+    <!-- Dashboard -->
     <div class="stats-grid">
         <div class="stat-card"><h4>Total Records</h4><p id="stat-total">0</p></div>
         <div class="stat-card" style="border-left-color: var(--secondary);"><h4>COMP</h4><p id="stat-installed">0</p></div>
         <div class="stat-card" style="border-left-color: var(--orange);">
-            <h4>Pending Work</h4><p id="stat-pending">0</p>
+            <h4>Pending</h4><p id="stat-pending">0</p>
             <div class="status-breakdown" id="statusBreakdown"></div>
         </div>
-        <div class="stat-card" style="border-left-color: #a855f7;"><h4>AREAS</h4><p id="stat-areas">0</p></div>
+        <div class="stat-card" style="border-left-color: #a855f7;"><h4>AREAS</h4><p id="stat-areas">49</p></div>
     </div>
 
-    <!-- Action Bar -->
+    <!-- Action Bar (Icons) -->
     <div class="action-bar">
         <button class="icon-btn-box btn-filter" onclick="toggleSidebar()"><i class="fas fa-filter"></i></button>
         <input type="text" id="mainSearch" placeholder="Search Customer, Mobile, SRN...">
@@ -139,19 +141,19 @@
                 </table>
             </div>
             <div style="display:flex; justify-content:space-between; padding:15px; background:var(--bg-card); align-items:center; border-top:1px solid var(--border);">
-                <button onclick="changePage(-1)" style="padding:10px 15px; border-radius:8px; border:none; background:var(--border); color:var(--text); cursor:pointer;">Prev</button>
-                <span id="pageInfo" style="font-weight:bold;">Page 1</span>
-                <button onclick="changePage(1)" style="padding:10px 15px; border-radius:8px; border:none; background:var(--border); color:var(--text); cursor:pointer;">Next</button>
+                <button onclick="changePage(-1)" style="padding:8px 15px; border-radius:8px; border:none; background:var(--border); color:var(--text); cursor:pointer;">Prev</button>
+                <span id="pageInfo" style="align-self:center; font-weight:bold;">Page 1</span>
+                <button onclick="changePage(1)" style="padding:8px 15px; border-radius:8px; border:none; background:var(--border); color:var(--text); cursor:pointer;">Next</button>
             </div>
         </main>
     </div>
 
-    <!-- Details Modal -->
+    <!-- Professional Modal for 43+ Details -->
     <div id="detailModal" class="modal">
         <div class="modal-content">
             <h3 id="modalTitle" style="color:var(--primary); margin:0; border-bottom:1px solid var(--border); padding-bottom:10px;">Details</h3>
             <div id="modalBody" class="detail-grid"></div>
-            <button onclick="closeModal()" class="icon-btn-box" style="background:var(--primary); width:100%; margin-top:20px; font-weight:bold;">CLOSE</button>
+            <button onclick="closeModal()" class="icon-btn-box" style="background:var(--primary); width:100%; margin-top:20px; font-weight:bold;">CLOSE DETAILS</button>
         </div>
     </div>
 
@@ -186,14 +188,16 @@
             const { data: nestedData } = await supabaseClient.rpc('get_nested_summary');
             const list = document.getElementById('areaList');
             list.innerHTML = '';
-            document.getElementById('stat-areas').innerText = nestedData.length;
-
+            
+            let areaCounter = 0;
             const groups = {};
             nestedData.forEach(d => {
                 const dist = d.district_name || 'Katihar';
                 if(!groups[dist]) groups[dist] = [];
                 groups[dist].push(d);
+                areaCounter++;
             });
+            document.getElementById('stat-areas').innerText = areaCounter;
 
             Object.keys(groups).sort().forEach(dist => {
                 const total = groups[dist].reduce((sum, item) => sum + parseInt(item.total_count), 0);
@@ -218,7 +222,7 @@
 
     async function fetchMainData() {
         const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px;">🔍 Searching...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px;">🔍 Searching Records...</td></tr>';
         const search = document.getElementById('mainSearch').value.trim();
         let q = supabaseClient.from('SEARCH YOU DATA').select('*');
         if (search) {
@@ -226,11 +230,12 @@
             else q = q.or(`"Customer Name".ilike.%${search}%,"Locality".ilike.%${search}%,"Area".ilike.%${search}%`);
         }
         if (activeArea) q = q.eq('Area', activeArea);
-        const { data } = await q.order('Customer Name').range(page*50, (page+1)*50-1);
+        const { data, error } = await q.order('Customer Name').range(page*50, (page+1)*50-1);
+        if (error) throw error;
         currentData = data; tbody.innerHTML = '';
         data.forEach((row, idx) => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td data-label="View"><button onclick="showDetails(${idx})" style="padding:6px 10px; background:var(--primary); border:none; border-radius:5px; color:white; cursor:pointer;"><i class="fas fa-eye"></i></button></td>`;
+            tr.innerHTML = `<td data-label="View"><button onclick="showDetails(${idx})" style="padding:6px 10px; background:var(--primary); border:none; border-radius:5px; color:white; cursor:pointer;"><i class="fas fa-eye"></i> View</button></td>`;
             tableCols.forEach(c => {
                 const label = c === "Contact Number" ? "Mobile" : (c === "Service Request Number" ? "SRN" : c);
                 tr.innerHTML += `<td data-label="${label}">${row[c] || '-'}</td>`;
@@ -241,9 +246,13 @@
     }
 
     function showDetails(idx) {
-        const row = currentData[idx]; document.getElementById('modalTitle').innerText = row['Customer Name'] || 'Details';
-        const body = document.getElementById('modalBody'); body.innerHTML = '';
-        Object.keys(row).sort().forEach(k => { body.innerHTML += `<div class="detail-item"><b>${k}:</b> ${row[k] || '-'}</div>`; });
+        const row = currentData[idx];
+        document.getElementById('modalTitle').innerText = row['Customer Name'] || 'Details';
+        const body = document.getElementById('modalBody');
+        body.innerHTML = '';
+        Object.keys(row).sort().forEach(k => {
+            body.innerHTML += `<div class="detail-item"><b>${k.replace(/_/g,' ')}:</b> ${row[k] || '-'}</div>`;
+        });
         document.getElementById('detailModal').style.display = 'block';
     }
 
