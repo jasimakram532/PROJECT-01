@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DMA Management Portal - Ultimate</title>
+    <title>DMA Management Portal - Master UI</title>
     <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
+        /* --- 1. THEMES --- */
         :root {
             --bg-body: #0f172a; --bg-card: #1e293b; --primary: #24b47e; 
             --secondary: #3b82f6; --text: #f1f5f9; --border: #334155; --orange: #f59e0b;
@@ -20,37 +21,47 @@
 
         body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text); margin: 0; padding: 15px; transition: 0.3s; overflow-x: hidden; }
         
-        /* Backdrop Overlay for mobile */
-        #sidebarOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 8999; }
+        /* Backdrop Overlay for tap-to-close */
+        #sidebarOverlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 8999;
+        }
 
-        /* Stats */
+        /* Stats Dashboard */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
         .stat-card { background: var(--bg-card); padding: 12px; border-radius: 10px; border-left: 4px solid var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .stat-card h4 { font-size: 10px; text-transform: uppercase; margin: 0; opacity: 0.7; }
         .stat-card p { margin: 5px 0; font-size: 18px; font-weight: 700; color: var(--primary); }
+        .status-breakdown { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 5px; }
+        .status-tag { font-size: 9px; padding: 2px 4px; background: rgba(255,255,255,0.05); border-radius: 3px; }
 
-        /* 🔍 Action Bar (Laptop vs Mobile Logic) */
+        /* --- ACTION BAR (ICON UI) --- */
         .action-bar { display: flex; align-items: center; gap: 8px; background: var(--bg-card); padding: 10px; border-radius: 12px; margin-bottom: 20px; }
-        .action-bar input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white; outline: none; }
+        .action-bar input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.1); color: white; outline: none; }
         
-        .btn-box { width: 42px; height: 42px; min-width: 42px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; transition: 0.2s; }
-        .btn-text-only { width: auto; padding: 0 20px; }
+        .icon-btn-box { width: 42px; height: 42px; min-width: 42px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; transition: 0.2s; }
+        .btn-filter { background: var(--secondary); }
+        .btn-search { background: var(--primary); }
+        .btn-reset { background: #64748b; }
 
-        /* Sidebar */
+        /* --- SIDEBAR --- */
         .content-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
-        .sidebar { background: var(--bg-card); padding: 20px; border-radius: 15px; height: 600px; display: flex; flex-direction: column; z-index: 9000; transition: 0.3s; }
+        .sidebar { background: var(--bg-card); padding: 20px; border-radius: 15px; height: 600px; display: flex; flex-direction: column; z-index: 9000; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .theme-icon { cursor: pointer; color: var(--orange); font-size: 18px; }
+        
+        /* Theme Toggle Icon in Header */
+        .theme-icon-btn { cursor: pointer; color: var(--orange); font-size: 18px; margin-right: 15px; }
 
         .area-list-wrapper { flex-grow: 1; overflow-y: auto; margin-top: 10px; }
-
-        /* 📂 Nested Accordion Style (Mobile) */
-        .dist-group { margin-bottom: 8px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-        .dist-header { padding: 12px; background: rgba(255,255,255,0.05); cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; }
+        
+        /* Folders Style (District) */
+        .dist-group { margin-bottom: 8px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: rgba(255,255,255,0.02); }
+        .dist-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; align-items: center; }
         .dist-areas { display: none; padding: 5px; }
         .dist-areas.active { display: block; }
         
-        .area-item { padding: 10px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 12px; display: flex; justify-content: space-between; }
-        .area-item:hover, .area-item.active { background: var(--primary); color: white; border-radius: 4px; }
+        .area-item { padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; font-size: 13px; }
+        .area-item:hover, .area-item.active { background: var(--primary); color: white; border-radius: 5px; }
         .all-areas { background: rgba(36,180,126,0.1); font-weight: bold; margin-top: 10px; padding: 14px; text-align: center; border-radius: 10px; cursor: pointer; border: 1px dashed var(--primary); }
 
         /* Table */
@@ -62,54 +73,64 @@
 
         @media (max-width: 1024px) {
             .content-layout { grid-template-columns: 1fr; }
-            .sidebar { position: fixed; left: -100%; top: 0; height: 100%; width: 280px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+            .sidebar { position: fixed; left: -100%; top: 0; height: 100%; width: 280px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); transition: 0.3s; }
             .sidebar.active { left: 0; }
             #sidebarOverlay.active { display: block; }
-            .btn-text-only { display: none; } /* Hide text buttons on mobile */
-            .btn-mobile-icon { display: flex !important; } /* Show icon buttons on mobile */
-            
             thead { display: none; }
             tr { display: block; border: 1px solid var(--border); margin-bottom: 12px; padding: 12px; border-radius: 10px; background: var(--bg-card); }
             td { display: flex; justify-content: space-between; border: none; text-align: right; padding: 8px 0; border-bottom: 1px solid var(--border); white-space: normal; }
             td::before { content: attr(data-label); font-weight: bold; color: var(--primary); text-align: left; margin-right: 10px; }
         }
+
+        /* Detail Modal */
+        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
+        .modal-content { background: var(--bg-card); margin: 5% auto; padding: 25px; width: 85%; border-radius: 15px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--primary); }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin-top: 15px; }
+        .detail-item { padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 12px; border-left: 3px solid var(--primary); }
     </style>
 </head>
-<body>
+<body data-theme="night">
 
+    <!-- Backdrop for Tap-to-Close -->
     <div id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
+    <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card"><h4>Total Records</h4><p id="stat-total">0</p></div>
         <div class="stat-card" style="border-left-color: var(--secondary);"><h4>COMP</h4><p id="stat-installed">0</p></div>
-        <div class="stat-card" style="border-left-color: var(--orange);"><h4>Pending</h4><p id="stat-pending">0</p></div>
+        <div class="stat-card" style="border-left-color: var(--orange);">
+            <h4>Pending Work</h4><p id="stat-pending">0</p>
+            <div class="status-breakdown" id="statusBreakdown"></div>
+        </div>
         <div class="stat-card" style="border-left-color: #a855f7;"><h4>AREAS</h4><p id="stat-areas">0</p></div>
     </div>
 
-    <!-- ACTION BAR -->
+    <!-- Action Bar -->
     <div class="action-bar">
-        <button class="btn-box" style="background:var(--secondary);" onclick="toggleSidebar()"><i class="fas fa-filter"></i></button>
-        <input type="text" id="mainSearch" placeholder="Search customer...">
-        
-        <!-- Icons for Mobile -->
-        <button onclick="performSearch()" class="btn-box" style="background:var(--primary);"><i class="fas fa-search"></i></button>
-        <button onclick="resetFilters()" class="btn-box" style="background:#64748b;"><i class="fas fa-undo"></i></button>
+        <button class="icon-btn-box btn-filter" onclick="toggleSidebar()"><i class="fas fa-filter"></i></button>
+        <input type="text" id="mainSearch" placeholder="Search Customer, Mobile, SRN...">
+        <button onclick="performSearch()" class="icon-btn-box btn-search"><i class="fas fa-search"></i></button>
+        <button onclick="resetFilters()" class="icon-btn-box btn-reset"><i class="fas fa-undo"></i></button>
     </div>
 
     <div class="content-layout">
+        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <b>AREA SUMMARY</b> 
                 <div>
-                    <i class="fas fa-moon theme-icon" id="themeIcon" onclick="cycleTheme()" style="margin-right: 15px;"></i>
+                    <!-- Theme Toggle Icon inside header -->
+                    <i class="fas fa-moon theme-icon-btn" id="themeIcon" onclick="cycleTheme()"></i>
+                    <!-- Close button -->
                     <i class="fas fa-times" onclick="toggleSidebar()" style="color:red; font-size:22px; cursor:pointer;"></i>
                 </div>
             </div>
-            <input type="text" id="sideSearch" placeholder="Filter list..." onkeyup="filterSidebar()" style="margin:10px 0; padding:10px; border-radius:5px; background:rgba(0,0,0,0.2); color:white; border:1px solid var(--border);">
+            <input type="text" id="sideSearch" placeholder="Filter area..." onkeyup="filterSidebar()" style="margin:10px 0; padding:10px; border-radius:8px; background:rgba(0,0,0,0.2); color:white; border:1px solid var(--border); outline:none;">
             <div class="area-list-wrapper" id="areaList">Loading...</div>
             <div class="all-areas" onclick="filterByAll()">🌍 ALL AREAS <strong id="allCount">0</strong></div>
         </aside>
 
+        <!-- Main Table -->
         <main class="table-container">
             <div class="table-wrapper">
                 <table id="mainTable">
@@ -117,13 +138,25 @@
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
-            <div style="display:flex; justify-content:space-between; padding:15px; background:var(--bg-card);">
-                <button onclick="changePage(-1)" style="padding:8px 15px; border-radius:5px; border:none; background:var(--border); color:var(--text);">Prev</button>
+            <div style="display:flex; justify-content:space-between; padding:15px; background:var(--bg-card); align-items:center; border-top:1px solid var(--border);">
+                <button onclick="changePage(-1)" style="padding:10px 15px; border-radius:8px; border:none; background:var(--border); color:var(--text); cursor:pointer;">Prev</button>
                 <span id="pageInfo" style="font-weight:bold;">Page 1</span>
-                <button onclick="changePage(1)" style="padding:8px 15px; border-radius:5px; border:none; background:var(--border); color:var(--text);">Next</button>
+                <button onclick="changePage(1)" style="padding:10px 15px; border-radius:8px; border:none; background:var(--border); color:var(--text); cursor:pointer;">Next</button>
             </div>
         </main>
     </div>
+
+    <!-- Details Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle" style="color:var(--primary); margin:0; border-bottom:1px solid var(--border); padding-bottom:10px;">Details</h3>
+            <div id="modalBody" class="detail-grid"></div>
+            <button onclick="closeModal()" class="icon-btn-box" style="background:var(--primary); width:100%; margin-top:20px; font-weight:bold;">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- Excel Button -->
+    <button onclick="exportToExcel()" style="position:fixed; bottom:20px; right:20px; width:50px; height:50px; border-radius:50%; background:#1d6f42; color:white; border:none; z-index:1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"><i class="fas fa-file-excel"></i></button>
 
 <script>
     const SUPABASE_URL = 'https://tqvyjyseaugdtblqacle.supabase.co';
@@ -131,17 +164,17 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentData = [], page = 0, activeArea = null, currentTheme = 'night';
-    const cols = ["Customer Name", "Contact Number", "Service Request Number", "Area", "Status"];
-
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('active');
-        document.getElementById('sidebarOverlay').classList.toggle('active');
-    }
+    const tableCols = ["Customer Name", "Contact Number", "Service Request Number", "Area", "Status"];
 
     function cycleTheme() {
         currentTheme = (currentTheme === 'night') ? 'day' : 'night';
         document.body.setAttribute('data-theme', currentTheme);
         document.getElementById('themeIcon').className = (currentTheme === 'night') ? 'fas fa-moon' : 'fas fa-sun';
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+        document.getElementById('sidebarOverlay').classList.toggle('active');
     }
 
     async function loadStats() {
@@ -157,33 +190,35 @@
 
             const groups = {};
             nestedData.forEach(d => {
-                if(!groups[d.district_name]) groups[d.district_name] = [];
-                groups[d.district_name].push(d);
+                const dist = d.district_name || 'Katihar';
+                if(!groups[dist]) groups[dist] = [];
+                groups[dist].push(d);
             });
 
-            Object.keys(groups).forEach(dist => {
+            Object.keys(groups).sort().forEach(dist => {
                 const total = groups[dist].reduce((sum, item) => sum + parseInt(item.total_count), 0);
-                if(window.innerWidth < 1024) { // Mobile: Folders
-                    const distDiv = document.createElement('div');
-                    distDiv.className = 'dist-group';
-                    distDiv.innerHTML = `<div class="dist-header" onclick="this.nextElementSibling.classList.toggle('active')"><span>📂 ${dist}</span> <strong>${total}</strong></div><div class="dist-areas">${groups[dist].map(a => `<div class="area-item" onclick="filterByArea('${a.area_name}', this)"><span>📍 ${a.area_name}</span> <strong>${a.total_count}</strong></div>`).join('')}</div>`;
-                    list.appendChild(distDiv);
-                } else { // Laptop: Normal List
-                    groups[dist].forEach(a => {
-                        list.innerHTML += `<div class="area-item" onclick="filterByArea('${a.area_name}', this)"><span>${a.area_name}</span> <strong>${a.total_count}</strong></div>`;
-                    });
-                }
+                const distDiv = document.createElement('div');
+                distDiv.className = 'dist-group';
+                distDiv.innerHTML = `<div class="dist-header" onclick="this.nextElementSibling.classList.toggle('active')"><span>📁 ${dist}</span> <strong>${total}</strong></div><div class="dist-areas">${groups[dist].map(a => `<div class="area-item" onclick="filterByArea('${a.area_name}', this)"><span>📍 ${a.area_name}</span> <strong>${a.total_count}</strong></div>`).join('')}</div>`;
+                list.appendChild(distDiv);
             });
 
-            const { count: sc } = await supabaseClient.from('SEARCH YOU DATA').select('*', { count: 'exact', head: true }).eq('Status', 'COMP');
-            document.getElementById('stat-installed').innerText = (sc || 0).toLocaleString();
-            document.getElementById('stat-pending').innerText = (count - (sc || 0)).toLocaleString();
+            const statuses = ['COMP', 'MIST', 'MIOC', 'MIDN', 'RFC'];
+            let bHtml = '';
+            for(let s of statuses) {
+                const { count: sc } = await supabaseClient.from('SEARCH YOU DATA').select('*', { count: 'exact', head: true }).eq('Status', s);
+                if(s === 'COMP') document.getElementById('stat-installed').innerText = (sc || 0).toLocaleString();
+                bHtml += `<span class="status-tag">${s}: ${sc || 0}</span>`;
+            }
+            document.getElementById('statusBreakdown').innerHTML = bHtml;
+            const inst = parseInt(document.getElementById('stat-installed').innerText.replace(/,/g,'')) || 0;
+            document.getElementById('stat-pending').innerText = (count - inst).toLocaleString();
         } catch(e) { console.error(e); }
     }
 
     async function fetchMainData() {
         const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px;">🔍 Loading...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px;">🔍 Searching...</td></tr>';
         const search = document.getElementById('mainSearch').value.trim();
         let q = supabaseClient.from('SEARCH YOU DATA').select('*');
         if (search) {
@@ -195,15 +230,26 @@
         currentData = data; tbody.innerHTML = '';
         data.forEach((row, idx) => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td data-label="View"><button onclick="alert(JSON.stringify(row,null,2))" style="padding:5px 10px; background:var(--primary); border:none; border-radius:5px; color:white;">👁️</button></td>`;
-            cols.forEach(c => tr.innerHTML += `<td data-label="${c}">${row[c] || '-'}</td>`);
+            tr.innerHTML = `<td data-label="View"><button onclick="showDetails(${idx})" style="padding:6px 10px; background:var(--primary); border:none; border-radius:5px; color:white; cursor:pointer;"><i class="fas fa-eye"></i></button></td>`;
+            tableCols.forEach(c => {
+                const label = c === "Contact Number" ? "Mobile" : (c === "Service Request Number" ? "SRN" : c);
+                tr.innerHTML += `<td data-label="${label}">${row[c] || '-'}</td>`;
+            });
             tbody.appendChild(tr);
         });
         document.getElementById('pageInfo').innerText = `Page ${page + 1}`;
     }
 
-    function filterByArea(area, el) { activeArea = area; page = 0; document.querySelectorAll('.area-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); if(window.innerWidth < 1024) toggleSidebar(); fetchMainData(); }
-    function filterByAll() { activeArea = null; page = 0; document.querySelectorAll('.area-item').forEach(i => i.classList.remove('active')); if(window.innerWidth < 1024) toggleSidebar(); fetchMainData(); }
+    function showDetails(idx) {
+        const row = currentData[idx]; document.getElementById('modalTitle').innerText = row['Customer Name'] || 'Details';
+        const body = document.getElementById('modalBody'); body.innerHTML = '';
+        Object.keys(row).sort().forEach(k => { body.innerHTML += `<div class="detail-item"><b>${k}:</b> ${row[k] || '-'}</div>`; });
+        document.getElementById('detailModal').style.display = 'block';
+    }
+
+    function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
+    function filterByArea(area, el) { activeArea = area; page = 0; if(window.innerWidth < 1024) toggleSidebar(); fetchMainData(); }
+    function filterByAll() { activeArea = null; page = 0; if(window.innerWidth < 1024) toggleSidebar(); fetchMainData(); }
     function performSearch() { page = 0; fetchMainData(); }
     function resetFilters() { document.getElementById('mainSearch').value = ''; filterByAll(); }
     function changePage(s) { if(page + s >= 0) { page += s; fetchMainData(); } }
